@@ -1,35 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import API from '../api';
-import Sidebar from '../components/Sidebar';
-import EntryView from '../components/EntryView';
-import { io } from 'socket.io-client';
+import React, { useEffect, useState } from "react";
+import API from "../api";
+import Sidebar from "../components/Sidebar";
+import EntryView from "../components/EntryView";
 
-export default function Encyclopedia({ user }) {
+export default function Encyclopedia({ user, socket }) {
   const [categories, setCategories] = useState([]);
-  const [selectedEntry, setSelectedEntry] = useState(null);
-  const [socket, setSocket] = useState(null);
+  const [selectedEntryId, setSelectedEntryId] = useState(null);
 
+  // Load categories on mount and on sidebar updates
   useEffect(() => {
-    API.get('/category').then(res => setCategories(res.data));
-    setSocket(io());
-    return () => socket?.disconnect();
-  }, []);
+    async function loadCategories() {
+      const res = await API.get("/category");
+      setCategories(res.data);
+    }
+    loadCategories();
+
+    if (!socket) return;
+    const onSidebarUpdated = () => loadCategories();
+    socket.on("sidebar-updated", onSidebarUpdated);
+    return () => socket.off("sidebar-updated", onSidebarUpdated);
+  }, [socket]);
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{ display: "flex", height: "100vh", fontFamily: "Arial, sans-serif" }}>
       <Sidebar
         categories={categories}
-        canEdit={user.role === 'writer'}
-        setSelectedEntry={setSelectedEntry}
+        canEdit={user.role === "writer"}
+        setSelectedEntry={setSelectedEntryId}
         socket={socket}
       />
       <EntryView
-        entryId={selectedEntry}
+        entryId={selectedEntryId}
         user={user}
+        canEdit={user.role === "writer" || user.role === "animator"}
         socket={socket}
-        canEdit={user.role === 'writer' || user.role === 'animator'}
+        setSelectedEntry={setSelectedEntryId}
       />
     </div>
   );
-                              }
-          
+}
