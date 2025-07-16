@@ -1,0 +1,24 @@
+services:
+- type: web
+  name: encyclopedia-backend
+  env: node
+  branch: main
+  rootDir: backend
+  buildCommand: npm install
+  startCommand: node server.js
+  envVars:
+    - key: MONGODB_URI
+      sync: false
+    - key: JWT_SECRET
+      generateValue: true
+  plan: starter
+
+- type: web
+  name: encyclopedia-frontend
+  env: static
+  branch: main
+  rootDir: frontend
+  buildCommand: npm install && npm run build
+  staticPublishPath: build
+  plan: starter
+  
