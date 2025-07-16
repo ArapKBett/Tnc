@@ -6,7 +6,6 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
   const [editMode, setEditMode] = useState(false);
   const [editContent, setEditContent] = useState({});
 
-  // Load entry data
   useEffect(() => {
     if (!entryId) {
       setEntry(null);
@@ -20,10 +19,9 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
     });
   }, [entryId]);
 
-  // Listen real-time updates to this entry
   useEffect(() => {
     if (!socket || !entryId) return;
-    const onEntryUpdated = (updatedEntry) => {
+    const onEntryUpdated = updatedEntry => {
       if (updatedEntry._id === entryId) {
         setEntry(updatedEntry);
         if (!editMode) setEditContent(updatedEntry.content || {});
@@ -39,7 +37,7 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
       setEditMode(false);
       alert("Saved successfully.");
     } catch {
-      alert("Error saving entry.");
+      alert("Failed to save entry.");
     }
   };
 
@@ -67,8 +65,6 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
               </span>
             </p>
           )}
-
-          {/* Links to related entries */}
           {entry.links && entry.links.length > 0 && (
             <div>
               <b>Related:</b>
@@ -76,8 +72,8 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
                 {entry.links.map(link => (
                   <li key={link._id}>
                     <span
-                      style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }}
                       onClick={() => setSelectedEntry(link._id)}
+                      style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }}
                     >
                       {link.title}
                     </span>
@@ -87,11 +83,7 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
             </div>
           )}
 
-          {canEdit && (
-            <button onClick={() => setEditMode(true)} style={{ marginTop: 18 }}>
-              Edit Entry
-            </button>
-          )}
+          {canEdit && <button onClick={() => setEditMode(true)} style={{ marginTop: 18 }}>Edit Entry</button>}
         </div>
       ) : (
         <div>
@@ -127,12 +119,11 @@ export default function EntryView({ entryId, user, canEdit, socket, setSelectedE
           <br />
           <div style={{ marginTop: 20 }}>
             <button onClick={saveEntry}>Save</button>
-            <button onClick={() => setEditMode(false)} style={{ marginLeft: 12 }}>
-              Cancel
-            </button>
+            <button onClick={() => setEditMode(false)} style={{ marginLeft: 12 }}>Cancel</button>
           </div>
         </div>
       )}
     </div>
   );
-}
+                       }
+    
