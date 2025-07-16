@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "backend",
-    "frontend"
+    "Backend",
+    "Frontend"
   ],
   "scripts": {
-    "start:backend": "npm --prefix backend run start",
-    "start:frontend": "npm --prefix frontend run start",
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install"
+    "start:Backend": "npm --prefix Backend run start",
+    "start:Frontend": "npm --prefix Frontend run start",
+    "start": "concurrently \"npm run start:Backend\" \"npm run start:Frontend\"",
+    "install:all": "npm install && npm --prefix Backend install && npm --prefix Frontend install"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
