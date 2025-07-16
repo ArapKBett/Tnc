@@ -4,7 +4,19 @@ const Entry = require("../models/Entry");
 const authMiddleware = require("../middleware/auth");
 const mongoose = require("mongoose");
 
-// Get single entry by ID
+// --- GET ALL ENTRIES ---
+// To make entries public (no login required), remove authMiddleware() below.
+router.get("/", authMiddleware(), async (req, res) => {
+  try {
+    const entries = await Entry.find().sort({ createdAt: -1 }).lean();
+    res.json(entries);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// --- GET SINGLE ENTRY BY ID ---
 router.get("/:id", authMiddleware(), async (req, res) => {
   try {
     const entryId = req.params.id;
@@ -24,14 +36,11 @@ router.get("/:id", authMiddleware(), async (req, res) => {
   }
 });
 
-// Search entries by query
+// --- SEARCH ENTRIES ---
 router.get("/search", authMiddleware(), async (req, res) => {
   try {
     const q = req.query.q;
     if (!q || q.trim().length === 0) return res.json([]);
-
-    // Text search on title or bio within content
-    // You might want to add MongoDB indexes for better performance
 
     const regex = new RegExp(q, "i");
     const entries = await Entry.find({
@@ -48,7 +57,7 @@ router.get("/search", authMiddleware(), async (req, res) => {
   }
 });
 
-// Get multiple entries by IDs (used for related links loading)
+// --- GET MULTIPLE ENTRIES BY IDS (RELATED) ---
 router.get("/related", authMiddleware(), async (req, res) => {
   try {
     const ids = req.query.ids || "";
@@ -65,7 +74,7 @@ router.get("/related", authMiddleware(), async (req, res) => {
   }
 });
 
-// Create new entry (writers only)
+// --- CREATE NEW ENTRY (WRITERS ONLY) ---
 router.post("/", authMiddleware(["writer"]), async (req, res) => {
   try {
     const {
@@ -103,7 +112,7 @@ router.post("/", authMiddleware(["writer"]), async (req, res) => {
   }
 });
 
-// Update existing entry (writers + animators with limited permissions)
+// --- UPDATE EXISTING ENTRY ---
 router.put("/:id", authMiddleware(["writer", "animator"]), async (req, res) => {
   try {
     const entryId = req.params.id;
@@ -113,9 +122,8 @@ router.put("/:id", authMiddleware(["writer", "animator"]), async (req, res) => {
     const entry = await Entry.findById(entryId);
     if (!entry) return res.status(404).json({ message: "Entry not found" });
 
-    // Writers can edit everything, animators only upload assets and update content but not title/type/category
+    // Writers can edit everything, animators limited
     if (req.user.role === "animator") {
-      // You could restrict fields here, e.g.:
       if (req.body.title && req.body.title !== entry.title)
         return res.status(403).json({ message: "Animators cannot change title" });
       if (req.body.type && req.body.type !== entry.type)
@@ -124,7 +132,7 @@ router.put("/:id", authMiddleware(["writer", "animator"]), async (req, res) => {
         return res.status(403).json({ message: "Animators cannot change category" });
     }
 
-    // Update fields from request body
+    // Update fields
     if ("title" in req.body) entry.title = req.body.title;
     if ("type" in req.body) entry.type = req.body.type;
     if ("category" in req.body) entry.category = req.body.category;
@@ -145,7 +153,7 @@ router.put("/:id", authMiddleware(["writer", "animator"]), async (req, res) => {
   }
 });
 
-// Delete entry (writers only)
+// --- DELETE ENTRY (WRITERS ONLY) ---
 router.delete("/:id", authMiddleware(["writer"]), async (req, res) => {
   try {
     const entryId = req.params.id;
@@ -163,15 +171,11 @@ router.delete("/:id", authMiddleware(["writer"]), async (req, res) => {
   }
 });
 
+// --- SOCKET.IO ATTACHMENT ---
 module.exports = (io) => {
-  const routerWithSocket = router;
-
-  // Attach io to app for emitting real-time events
-  routerWithSocket.use((req, res, next) => {
+  router.use((req, res, next) => {
     req.app.set("io", io);
     next();
   });
-
-  return routerWithSocket;
+  return router;
 };
-    
