@@ -14,7 +14,7 @@ const entryRoutesFactory = require("./routes/entry"); // requires io
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { origin: "https://sienc.onrender.com", credentials: true},
 });
 
 app.set("io", io); // make accessible in routes
